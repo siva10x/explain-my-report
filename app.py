@@ -60,6 +60,8 @@
 
 
 from flask import Flask, render_template
+from flask_restx import Api
+from flask_cors import CORS
 from routes.explain import explain_bp
 from dotenv import load_dotenv
 import logging
@@ -70,6 +72,23 @@ load_dotenv()
 
 def create_app():
     app = Flask(__name__, template_folder='templates')
+    
+    # Configure CORS to allow requests from frontend
+    CORS(app, 
+         origins=["http://localhost:3000", "http://127.0.0.1:3000", "http://localhost:5173", "http://127.0.0.1:5173"],
+         allow_headers=["Content-Type", "Authorization", "Accept", "Origin", "X-Requested-With"],
+         methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+         supports_credentials=True)
+    
+    # Initialize Flask-RESTX API with Swagger
+    api = Api(
+        app,
+        version='1.0',
+        title='Medical Report Explanation API',
+        description='API for explaining medical reports, prescriptions, and diagnoses',
+        doc='/swagger/',  # Swagger UI will be available at /swagger/
+        prefix='/api'
+    )
     
     # Ensure logs directory exists
     log_dir = 'logs'
@@ -110,8 +129,12 @@ def create_app():
     if not os.path.exists(upload_dir):
         os.makedirs(upload_dir)
     
-    # Register blueprints
+    # Register blueprints and namespaces
     app.register_blueprint(explain_bp, url_prefix='/api')
+    
+    # Register Swagger namespace
+    from routes.explain_swagger import api as explain_api
+    api.add_namespace(explain_api, path='/explain')
     
     # Add route for UI (optional, remove if not needed)
     @app.route('/')

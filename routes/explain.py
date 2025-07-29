@@ -41,6 +41,7 @@
 
 
 from flask import Blueprint, request, jsonify
+from flask_cors import cross_origin
 from services.file_parser import parse_file
 from services.langchain_service import explain_medical_text
 from utils.helpers import validate_request, debug_request
@@ -48,8 +49,12 @@ import logging
 
 explain_bp = Blueprint('explain', __name__)
 
-@explain_bp.route('/explain/prescription', methods=['POST'])
+@explain_bp.route('/explain/prescription', methods=['POST', 'OPTIONS'])
+@cross_origin()
 def explain_prescription():
+    if request.method == 'OPTIONS':
+        return jsonify({'message': 'OK'}), 200
+        
     print("Received prescription request")
     debug_request(request)  # Debug the incoming request
     try:
@@ -83,8 +88,12 @@ def explain_prescription():
         logging.error(f'Error processing prescription request: {str(e)}')
         return jsonify({'error': 'Internal server error'}), 500
 
-@explain_bp.route('/explain/diagnosis', methods=['POST'])
+@explain_bp.route('/explain/diagnosis', methods=['POST', 'OPTIONS'])
+@cross_origin()
 def explain_diagnosis():
+    if request.method == 'OPTIONS':
+        return jsonify({'message': 'OK'}), 200
+        
     debug_request(request)  # Debug the incoming request
     try:
         # Validate request
@@ -117,8 +126,12 @@ def explain_diagnosis():
         logging.error(f'Error processing diagnosis request: {str(e)}')
         return jsonify({'error': 'Internal server error'}), 500
 
-@explain_bp.route('/explain/query', methods=['POST'])
+@explain_bp.route('/explain/query', methods=['POST', 'OPTIONS'])
+@cross_origin()
 def explain_query():
+    if request.method == 'OPTIONS':
+        return jsonify({'message': 'OK'}), 200
+        
     debug_request(request)  # Debug the incoming request
     try:
         # Validate request
